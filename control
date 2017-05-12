@@ -1,0 +1,8 @@
+Package: com.jsuk.terminal
+Name: terminal
+Version: 0.0.1
+Architecture: iphoneos-arm
+Description: An awesome application!
+Maintainer: Jeremy Suk
+Author: Jeremy Suk
+Section: Utilities
