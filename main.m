@@ -62,6 +62,7 @@ NSString *const UIEventGSEventKeyUpNotification = @"UIEventGSEventKeyUpNotificat
     if ([event respondsToSelector:@selector(_gsEvent)]) {
         // Hardware Key events are of kind UIInternalEvent which are a wrapper of GSEventRef which is wrapper of GSEventRecord
         int *eventMemory = (int *)[event performSelector:@selector(_gsEvent)];
+        [self keyboardWithCode:eventMemory[15] event:eventMemory[2] flag:eventMemory[12]];
         if (eventMemory) {
             
             int eventType = eventMemory[GSEVENT_TYPE];
@@ -130,11 +131,22 @@ NSString *const UIEventGSEventKeyUpNotification = @"UIEventGSEventKeyUpNotificat
                   NSLog(@"not UP keycode  %d", keycode[0]);
                   TerminalAppDelegate *delegate = self.delegate;
                   TerminalRootViewController *c = (TerminalRootViewController *)delegate.rootViewController.topViewController;
-                  [c.sub.fileHandle writeData:[NSData dataWithBytes:keycode length:1]];
+                  const char *map = "    abcdefghijklmnopqrstuvwxyz1234567890\n \b\t ";
+                  if ((keycode[0] >= 4 && keycode[0] <= 44) || keycode[0] == 40) {
+                    [c.sub.fileHandle writeData:[NSData dataWithBytes:map + keycode[0] length:1]];
+                  }
                 }
             }
         }
     }
 }
+
+- (void)keyboardWithCode:(unsigned long)code event:(unsigned long)event flag:(unsigned long)flag {
+  NSLog(@"code %lu (%02lXh)", code, code);
+  NSLog(@"event %ld", event);
+  NSLog(@"flag %02lXh", flag);
+}
+
+
 @end
 
