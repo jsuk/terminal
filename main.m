@@ -1,4 +1,5 @@
 #import "TerminalAppDelegate.h"
+#import "TerminalRootViewController.h"
 
 int main(int argc, char *argv[]) {
   @autoreleasepool {
@@ -124,7 +125,12 @@ NSString *const UIEventGSEventKeyUpNotification = @"UIEventGSEventKeyUpNotificat
                      
                      */
                 } else {
-                  NSLog(@"not UP");
+                  int tmp = eventMemory[15];
+                  char *keycode = (char *)&tmp; // Cast to silent warning
+                  NSLog(@"not UP keycode  %d", keycode[0]);
+                  TerminalAppDelegate *delegate = self.delegate;
+                  TerminalRootViewController *c = (TerminalRootViewController *)delegate.rootViewController.topViewController;
+                  [c.sub.fileHandle writeData:[NSData dataWithBytes:keycode length:1]];
                 }
             }
         }

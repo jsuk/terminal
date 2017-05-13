@@ -1,7 +1,10 @@
 #import "TerminalRootViewController.h"
+#import "SubProcess/SubProcess.h"
+#import "SubProcess/PTY.h"
 
 @implementation TerminalRootViewController {
 	NSMutableArray *_objects;
+//  SubProcess *_sub;
 }
 
 - (void)loadView {
@@ -17,6 +20,33 @@
 - (void)addButtonTapped:(id)sender {
 	[_objects insertObject:[NSDate date] atIndex:0];
 	[self.tableView insertRowsAtIndexPaths:@[ [NSIndexPath indexPathForRow:0 inSection:0] ] withRowAnimation:UITableViewRowAnimationAutomatic];
+  _sub = [[SubProcess alloc] init];
+  [_sub start];
+  [[PTY alloc] initWithFileHandle:_sub.fileHandle];
+
+  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(dataAvailable:) name:NSFileHandleReadCompletionNotification object:[_sub fileHandle]];
+  [[_sub fileHandle] readInBackgroundAndNotify];
+
+}
+
+static const char* kProcessExitedMessage = "Process completed!";
+//static const char* kLS= "ls\n";
+- (void)dataAvailable:(NSNotification *)aNotification {
+  
+  NSData *data = [[aNotification userInfo] objectForKey:NSFileHandleNotificationDataItem];
+  if ([data length] == 0) {
+    NSData *message = [NSData dataWithBytes:kProcessExitedMessage length:strlen(kProcessExitedMessage)];
+    NSLog(@"%@", message);
+    [_sub stop];
+    return;
+  }
+
+  NSLog(@"dataAvailable %d", [data length]);
+  NSLog(@"dataAvailable %@", [NSString stringWithUTF8String:[data bytes]]);
+  //if ([data length] % 2 == 0) {
+  //  [[_sub fileHandle] writeData:[NSData dataWithBytes:kLS length:strlen(kLS)]];
+  //}
+  [[_sub fileHandle] readInBackgroundAndNotify];
 }
 
 #pragma mark - Table View Data Source
