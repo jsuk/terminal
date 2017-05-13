@@ -62,7 +62,10 @@ NSString *const UIEventGSEventKeyUpNotification = @"UIEventGSEventKeyUpNotificat
     if ([event respondsToSelector:@selector(_gsEvent)]) {
         // Hardware Key events are of kind UIInternalEvent which are a wrapper of GSEventRef which is wrapper of GSEventRecord
         int *eventMemory = (int *)[event performSelector:@selector(_gsEvent)];
-        [self keyboardWithCode:eventMemory[15] event:eventMemory[2] flag:eventMemory[12]];
+        int flags = eventMemory[GSEVENT_FLAGS];
+        [self keyboardWithCode:eventMemory[15] event:flags flag:eventMemory[12]];
+        TerminalAppDelegate *delegate = self.delegate;
+        TerminalRootViewController *c = (TerminalRootViewController *)delegate.rootViewController.topViewController;
         if (eventMemory) {
             
             int eventType = eventMemory[GSEVENT_TYPE];
@@ -125,12 +128,15 @@ NSString *const UIEventGSEventKeyUpNotification = @"UIEventGSEventKeyUpNotificat
                      Alt = 1 << 20
                      
                      */
+                  if (keycode[0] == 6 && flags > 0) {
+                    char *control = "\x03";
+                    NSLog(@"######## CTRL %d", control[0]);
+                    [c.sub.fileHandle writeData:[NSData dataWithBytes:control length:strlen(control)]];
+                  }
                 } else {
                   int tmp = eventMemory[15];
                   char *keycode = (char *)&tmp; // Cast to silent warning
-                  NSLog(@"not UP keycode  %d", keycode[0]);
-                  TerminalAppDelegate *delegate = self.delegate;
-                  TerminalRootViewController *c = (TerminalRootViewController *)delegate.rootViewController.topViewController;
+                  // NSLog(@"not UP keycode  %d", keycode[0]);
                   const char *map = "    abcdefghijklmnopqrstuvwxyz1234567890\n \b\t ";
                   if ((keycode[0] >= 4 && keycode[0] <= 44) || keycode[0] == 40) {
                     [c.sub.fileHandle writeData:[NSData dataWithBytes:map + keycode[0] length:1]];
@@ -144,7 +150,7 @@ NSString *const UIEventGSEventKeyUpNotification = @"UIEventGSEventKeyUpNotificat
 - (void)keyboardWithCode:(unsigned long)code event:(unsigned long)event flag:(unsigned long)flag {
   NSLog(@"code %lu (%02lXh)", code, code);
   NSLog(@"event %ld", event);
-  NSLog(@"flag %02lXh", flag);
+  NSLog(@"flag %02lXh %lu", flag, flag);
 }
 
 
