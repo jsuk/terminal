@@ -54,6 +54,7 @@ int main(int argc, char *argv[]) {
 #define GSEVENT_TYPE_KEYUP 11
 
 NSString *const UIEventGSEventKeyUpNotification = @"UIEventGSEventKeyUpNotification";
+NSString *const UIEventGSEventKeyDownNotification = @"UIEventGSEventKeyDownNotification";
 
 - (void)sendEvent:(UIEvent *)event
 {
@@ -62,16 +63,23 @@ NSString *const UIEventGSEventKeyUpNotification = @"UIEventGSEventKeyUpNotificat
     if ([event respondsToSelector:@selector(_gsEvent)]) {
         // Hardware Key events are of kind UIInternalEvent which are a wrapper of GSEventRef which is wrapper of GSEventRecord
         int *eventMemory = (int *)[event performSelector:@selector(_gsEvent)];
+        int eventType = eventMemory[GSEVENT_TYPE];
         int flags = eventMemory[GSEVENT_FLAGS];
-        [self keyboardWithCode:eventMemory[15] event:flags flag:eventMemory[12]];
+        int tmp = eventMemory[15];
+        char *keycode = (char *)&tmp; // Cast to silent warning
+        char key = keycode[0];
+        [self keyboardWithCode:key event:eventType flag:flags];
         TerminalAppDelegate *delegate = self.delegate;
         TerminalRootViewController *c = (TerminalRootViewController *)delegate.rootViewController.topViewController;
         if (eventMemory) {
             
-            int eventType = eventMemory[GSEVENT_TYPE];
             NSLog(@"#event type = %d", eventType);
-            if (eventType == GSEVENT_TYPE_KEYUP) {
-                
+            if (eventType == GSEVENT_TYPE_KEYDOWN) {
+              [self keyDownWithCode:key flag:flags];  
+            }
+            else if (eventType == GSEVENT_TYPE_KEYUP) {
+              [self keyUpWithCode:key flag:flags];
+            } else if(1 == 0) {
                 // Since the event type is key up we can assume is a GSEventKey struct
                 // Get flags from GSEvent
                 int eventFlags = eventMemory[GSEVENT_FLAGS];
@@ -132,15 +140,22 @@ NSString *const UIEventGSEventKeyUpNotification = @"UIEventGSEventKeyUpNotificat
                     char *control = "\x03";
                     NSLog(@"######## CTRL %d", control[0]);
                     [c.sub.fileHandle writeData:[NSData dataWithBytes:control length:strlen(control)]];
+                  } else if ((keycode[0] >= 4 && keycode[0] <= 44) || keycode[0] == 40) {
+                    const char *map = "    abcdefghijklmnopqrstuvwxyz1234567890\n \b\t ";
+                    const char *cc = map + keycode[0];
+                    NSData *data = [NSData dataWithBytes:cc length:1];
+                    [c.sub.fileHandle writeData:data];
                   }
                 } else {
+                  /*
                   int tmp = eventMemory[15];
                   char *keycode = (char *)&tmp; // Cast to silent warning
-                  // NSLog(@"not UP keycode  %d", keycode[0]);
+                  // NSLog(@"no flag  keycode  %d", keycode[0]);
                   const char *map = "    abcdefghijklmnopqrstuvwxyz1234567890\n \b\t ";
                   if ((keycode[0] >= 4 && keycode[0] <= 44) || keycode[0] == 40) {
                     [c.sub.fileHandle writeData:[NSData dataWithBytes:map + keycode[0] length:1]];
                   }
+                  */
                 }
             }
         }
@@ -153,6 +168,27 @@ NSString *const UIEventGSEventKeyUpNotification = @"UIEventGSEventKeyUpNotificat
   NSLog(@"flag %02lXh %lu", flag, flag);
 }
 
+- (void)keyDownWithCode:(unsigned long)key flag:(unsigned long)flags {
+  NSDictionary *userInfo = [[NSDictionary alloc] initWithObjectsAndKeys:[NSNumber numberWithShort:key], @"keycode", [NSNumber numberWithInt:flags], @"eventFlags", nil];
+  [[NSNotificationCenter defaultCenter] postNotificationName:UIEventGSEventKeyDownNotification object:nil userInfo:userInfo];
+
+  TerminalAppDelegate *delegate = self.delegate;
+  TerminalRootViewController *c = (TerminalRootViewController *)delegate.rootViewController.topViewController;
+  if (key == 6 && flags > 0) {
+    char *control = "\x03";
+    NSLog(@"######## CTRL %d", control[0]);
+    [c.sub.fileHandle writeData:[NSData dataWithBytes:control length:strlen(control)]];
+  } else if ((key >= 4 && key <= 44) || key == 40) {
+    const char *map = "    abcdefghijklmnopqrstuvwxyz1234567890\n \b\t ";
+    const char *cc = map + key;
+    NSData *data = [NSData dataWithBytes:cc length:1];
+    [c.sub.fileHandle writeData:data];
+  }
+}
+
+- (void)keyUpWithCode:(unsigned long)key flag:(unsigned long)flags {
+  
+}
 
 @end
 

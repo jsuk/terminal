@@ -2,6 +2,9 @@
 #import "SubProcess/SubProcess.h"
 #import "SubProcess/PTY.h"
 
+extern NSString *const UIEventGSEventKeyUpNotification;
+extern NSString *const UIEventGSEventKeyDownNotification;
+
 @implementation TerminalRootViewController {
 	NSMutableArray *_objects;
 //  SubProcess *_sub;
@@ -25,8 +28,14 @@
   [[PTY alloc] initWithFileHandle:_sub.fileHandle];
 
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(dataAvailable:) name:NSFileHandleReadCompletionNotification object:[_sub fileHandle]];
+  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyPressedDown:) name:UIEventGSEventKeyDownNotification object:nil];
   [[_sub fileHandle] readInBackgroundAndNotify];
 
+}
+
+- (void)keyPressedDown:(NSNotification *)aNotification {
+  //NSData *data = [[aNotification userInfo] objectForKey:UIEventGSEventKeyDownNotification];
+  NSLog(@"keyPressedDown %@", [aNotification userInfo]);
 }
 
 static const char* kProcessExitedMessage = "Process completed!";
