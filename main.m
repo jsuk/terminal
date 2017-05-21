@@ -170,7 +170,6 @@ NSString *const UIEventGSEventKeyDownNotification = @"UIEventGSEventKeyDownNotif
 
 - (void)keyDownWithCode:(unsigned long)key flag:(unsigned long)flags {
   NSDictionary *userInfo = [[NSDictionary alloc] initWithObjectsAndKeys:[NSNumber numberWithShort:key], @"keycode", [NSNumber numberWithInt:flags], @"eventFlags", nil];
-  [[NSNotificationCenter defaultCenter] postNotificationName:UIEventGSEventKeyDownNotification object:nil userInfo:userInfo];
 
   TerminalAppDelegate *delegate = self.delegate;
   TerminalRootViewController *c = (TerminalRootViewController *)delegate.rootViewController.topViewController;
@@ -184,6 +183,7 @@ NSString *const UIEventGSEventKeyDownNotification = @"UIEventGSEventKeyDownNotif
     NSData *data = [NSData dataWithBytes:cc length:1];
     [c.sub.fileHandle writeData:data];
   }
+  [[NSNotificationCenter defaultCenter] postNotificationName:UIEventGSEventKeyDownNotification object:nil userInfo:userInfo];
 }
 
 - (void)keyUpWithCode:(unsigned long)key flag:(unsigned long)flags {

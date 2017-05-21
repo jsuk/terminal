@@ -48,6 +48,7 @@ static const char* kProcessExitedMessage =
 
 - (void)dataAvailable:(NSNotification *)aNotification {
   NSData* data = [[aNotification userInfo] objectForKey:NSFileHandleNotificationDataItem];
+  NSLog(@"TerminalView dataAvailable %d", [data length]);
   if ([data length] == 0) {
     // I would expect from the documentation that an EOF would be present as
     // an entry in the userinfo dictionary as @"NSFileHandleError", but that is
@@ -114,6 +115,7 @@ static const char* kProcessExitedMessage =
     [textView clearScreen];
     [self startSubProcess];
   } else {
+    NSLog(@"TerminalView receive key %@", data);
     // Forward the data from the keyboard directly to the subprocess
     [[subProcess fileHandle] writeData:data];
   }
@@ -187,7 +189,7 @@ static const char* kProcessExitedMessage =
   [textView setFont:font];
 }
 
-- (ColorMap*)colorMap
+- (VT100ColorMap*)colorMap
 {
   return [textView colorMap];
 }

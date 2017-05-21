@@ -1,41 +1,71 @@
 #import "TerminalRootViewController.h"
 #import "SubProcess/SubProcess.h"
 #import "SubProcess/PTY.h"
+#import "TerminalView.h"
 
 extern NSString *const UIEventGSEventKeyUpNotification;
 extern NSString *const UIEventGSEventKeyDownNotification;
 
 @implementation TerminalRootViewController {
 	NSMutableArray *_objects;
-//  SubProcess *_sub;
+  SubProcess *_sub;
+  TerminalView *terminal;
 }
 
 - (void)loadView {
 	[super loadView];
-
+  terminal = [[TerminalView alloc] init];
+  NSLog(@"loadView frame width %f", self.view.frame.size.width);
+  [self.view addSubview:terminal];
+  terminal.backgroundColor = [UIColor redColor];
+  self.view.backgroundColor = [UIColor greenColor];
 	_objects = [[NSMutableArray alloc] init];
 
 	self.title = @"Root View Controller";
 	self.navigationItem.leftBarButtonItem = self.editButtonItem;
 	self.navigationItem.rightBarButtonItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(addButtonTapped:)] autorelease];
+  [terminal startSubProcess];
+  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyPressedDown:) name:UIEventGSEventKeyDownNotification object:nil];
+}
+
+- (void)viewWillLayoutSubviews {
+  [super viewWillLayoutSubviews];
+  terminal.frame  = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
 }
 
 - (void)addButtonTapped:(id)sender {
 	[_objects insertObject:[NSDate date] atIndex:0];
-	[self.tableView insertRowsAtIndexPaths:@[ [NSIndexPath indexPathForRow:0 inSection:0] ] withRowAnimation:UITableViewRowAnimationAutomatic];
+	//[self.tableView insertRowsAtIndexPaths:@[ [NSIndexPath indexPathForRow:0 inSection:0] ] withRowAnimation:UITableViewRowAnimationAutomatic];
   _sub = [[SubProcess alloc] init];
   [_sub start];
   [[PTY alloc] initWithFileHandle:_sub.fileHandle];
 
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(dataAvailable:) name:NSFileHandleReadCompletionNotification object:[_sub fileHandle]];
-  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyPressedDown:) name:UIEventGSEventKeyDownNotification object:nil];
   [[_sub fileHandle] readInBackgroundAndNotify];
 
 }
 
 - (void)keyPressedDown:(NSNotification *)aNotification {
-  //NSData *data = [[aNotification userInfo] objectForKey:UIEventGSEventKeyDownNotification];
-  NSLog(@"keyPressedDown %@", [aNotification userInfo]);
+  NSNumber *keycode = [[aNotification userInfo] objectForKey:@"keycode"];
+  NSNumber *flag = [[aNotification userInfo] objectForKey:@"flags"];
+  int key = [keycode integerValue];
+  int flags = [flag integerValue];
+  char *cc;
+  if (key == 6 && flags > 0) {
+    char *control = "\x03";
+    NSLog(@"######## CTRL %d", control[0]);
+    //[c.sub.fileHandle writeData:[NSData dataWithBytes:control length:strlen(control)]];
+    cc = control;
+  } else if ((key >= 4 && key <= 44) || key == 40) {
+    char *map = "    abcdefghijklmnopqrstuvwxyz1234567890\n \b\t ";
+    cc = map + key;
+  } else {
+    return;
+  }
+
+  NSData *data = [NSData dataWithBytes:cc length:1];
+  NSLog(@"TerminalView keyPressedDown %@", data);
+  [terminal receiveKeyboardInput:data];
 }
 
 static const char* kProcessExitedMessage = "Process completed!";

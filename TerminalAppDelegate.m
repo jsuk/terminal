@@ -1,5 +1,6 @@
 #import "TerminalAppDelegate.h"
 #import "TerminalRootViewController.h"
+#import "TerminalView.h"
 
 @implementation TerminalAppDelegate
 
