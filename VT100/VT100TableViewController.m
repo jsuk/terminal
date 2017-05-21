@@ -73,7 +73,7 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView
          cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-  NSAssert(fontMetrics != nil, @"fontMetrics not initialized");
+  //NSAssert(fontMetrics != nil, @"fontMetrics not initialized");
   NSAssert(stringSupplier != nil, @"stringSupplier not initialized");
     
   // Ignore position 0 since it should always be 0.  The row number here is not

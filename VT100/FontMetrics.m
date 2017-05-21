@@ -8,7 +8,7 @@
 - (instancetype)initWithFont:(UIFont *)uiFont {
 	self = [super init];
 	
-	if (self) {
+	if (self && 0) {
 		_font = [uiFont retain];
 		
 		CGFontRef ctFont = (__bridge CGFontRef)_font;

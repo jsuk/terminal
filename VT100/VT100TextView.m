@@ -22,6 +22,33 @@ extern void CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
 @synthesize buffer;
 @synthesize colorMap;
 
+- (id)init
+{
+  self = [super init];
+  if (self != nil) {
+    VT100* vt100 = [[VT100 alloc] init];
+    [vt100 setRefreshDelegate:self];
+    buffer = vt100;
+    colorMap = [[VT100ColorMap alloc] init];
+    UIFont* font = [UIFont systemFontOfSize:[UIFont smallSystemFontSize]];
+    fontMetrics = [[FontMetrics alloc] initWithFont:font];
+    [self clearSelection];
+    //
+    VT100StringSupplier* stringSupplier = [[VT100StringSupplier alloc] init];
+    stringSupplier.colorMap = colorMap;
+    stringSupplier.screenBuffer = buffer;
+    //
+    tableViewController = [[VT100TableViewController alloc] initWithColorMap:colorMap];
+    tableViewController.stringSupplier = stringSupplier;
+    //tableViewController.fontMetrics = fontMetrics;
+    [self addSubview:tableViewController.tableView];
+    //
+    [stringSupplier release];
+    tableViewController.tableView.backgroundColor = [UIColor yellowColor];
+  }
+  return self;
+}
+
 - (id)initWithCoder:(NSCoder *)decoder
 {
   self = [super initWithCoder:decoder];
@@ -76,8 +103,8 @@ extern void CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
   // The font size should not be too small that it overflows the glyph buffers.
   // It is not worth the effort to fail gracefully (increasing the buffer size would
   // be better).
-  NSParameterAssert(size.width < kMaxRowBufferSize);
-  [buffer setScreenSize:size];
+  //NSParameterAssert(size.width < kMaxRowBufferSize);
+  //[buffer setScreenSize:size];
   
   tableViewController.tableView.frame = self.frame;
 }

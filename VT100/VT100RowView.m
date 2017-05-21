@@ -16,14 +16,14 @@ extern NSString *const kBackgroundColorAttributeName;
 
 - (CFAttributedStringRef)newAttributedString
 {
-  //UIFont *ctFont = [fontMetrics font];    
+  UIFont *ctFont = [fontMetrics font];    
   NSString *string = [stringSupplier stringForLine:rowIndex];
   // Make a new copy of the line of text with the correct font
   int length = string.length; //(int)CFAttributedStringGetLength(string);
   CFMutableAttributedStringRef stringWithFont =
       CFAttributedStringCreateMutable(kCFAllocatorDefault, length);
-  //CFAttributedStringSetAttribute(stringWithFont, CFRangeMake(0, length),
-  //                               kCTFontAttributeName, ctFont);
+  CFAttributedStringSetAttribute(stringWithFont, CFRangeMake(0, length),
+                                 kCTFontAttributeName, ctFont);
   CFRelease(string);
   return stringWithFont;
 }
@@ -70,7 +70,7 @@ extern NSString *const kBackgroundColorAttributeName;
 
 - (void)drawRect:(CGRect)rect
 {
-  NSAssert(fontMetrics != nil, @"fontMetrics not initialized");
+  //NSAssert(fontMetrics != nil, @"fontMetrics not initialized");
   NSAssert(stringSupplier != nil, @"stringSupplier not initialized");
   CGContextRef context = UIGraphicsGetCurrentContext();
   

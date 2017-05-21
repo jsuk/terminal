@@ -77,6 +77,21 @@ static const char* kProcessExitedMessage =
   [[subProcess fileHandle] readInBackgroundAndNotify];
 }
 
+- (id)init
+{
+  self = [super init];
+  if (self != nil) {
+    subProcess = nil;
+    copyAndPasteEnabled = NO;
+    textView = [[VT100TextView alloc] init];
+    [textView setFrame:self.frame];
+    [self addSubview:textView];
+    textView.backgroundColor = [UIColor yellowColor];
+  }
+  NSLog(@"TermianlView init %f", self.frame.size.width);
+  return self;
+}
+
 - (id)initWithCoder:(NSCoder *)decoder
 {
   self = [super initWithCoder:decoder];
@@ -98,6 +113,8 @@ static const char* kProcessExitedMessage =
 - (void)layoutSubviews
 {
   [super layoutSubviews];
+  NSLog(@"TermianlView layoutSubview %f", self.frame.size.width);
+  [textView setFrame:self.frame];
   // Make sure that the text view is laid out, which re-computes the terminal
   // size in rows and columns.
   [textView layoutSubviews];
