@@ -16,16 +16,25 @@ extern NSString *const kBackgroundColorAttributeName;
 
 - (CFAttributedStringRef)newAttributedString
 {
-  UIFont *ctFont = [fontMetrics font];    
+  //UIFont *ctFont = [fontMetrics font];    
+  CGColorSpaceRef rgbColorSpace = CGColorSpaceCreateDeviceRGB();
+  CGFloat components[] = { 1.0, 1.0, 0.0, 0.8 };
+  CGColorRef red = CGColorCreate(rgbColorSpace, components);
   NSString *string = [stringSupplier stringForLine:rowIndex];
+  NSLog(@"line %d %@", string.length, string);
   // Make a new copy of the line of text with the correct font
-  int length = string.length; //(int)CFAttributedStringGetLength(string);
-  CFMutableAttributedStringRef stringWithFont =
-      CFAttributedStringCreateMutable(kCFAllocatorDefault, length);
-  CFAttributedStringSetAttribute(stringWithFont, CFRangeMake(0, length),
-                                 kCTFontAttributeName, ctFont);
+  //int length = string.length; //(int)CFAttributedStringGetLength(string);
+  //int length = string.length; //(int)CFAttributedStringGetLength(string);
+  NSMutableAttributedString *stringWithFont = [[NSMutableAttributedString alloc] initWithString:string];
+
+  //CFMutableAttributedStringRef stringWithFont =
+  //    CFAttributedStringCreateMutable(kCFAllocatorDefault, length);
+  //CFAttributedStringSetAttribute(stringWithFont, CFRangeMake(0, length),
+  //                               kCTFontAttributeName, ctFont);
+  //CFAttributedStringReplaceString((CFMutableAttributedStringRef)stringWithFont, CFRangeMake(0, 0), (__bridge CFStringRef)string);
+  CFAttributedStringSetAttribute((CFMutableAttributedStringRef)stringWithFont, CFRangeMake(0, string.length), kCTForegroundColorAttributeName, red);
   CFRelease(string);
-  return stringWithFont;
+  return (CFAttributedStringRef)stringWithFont;
 }
 
 - (float)textOffset
@@ -33,9 +42,9 @@ extern NSString *const kBackgroundColorAttributeName;
   // The base line of the text from the top of the row plus some offset for the
   // glyph descent.  This assumes that the frame size for this cell is based on
   // the same font metrics
-  float glyphHeight = [fontMetrics boundingBox].height;
-  float glyphDescent = [fontMetrics descent];  
-  return glyphHeight - glyphDescent;
+  //float glyphHeight = [fontMetrics boundingBox].height;
+  //float glyphDescent = [fontMetrics descent];  
+  return 20.f;//glyphHeight - glyphDescent;
 }
 
 // Convert a range of characters in a string to the rect where they are drawn
@@ -71,17 +80,19 @@ extern NSString *const kBackgroundColorAttributeName;
 - (void)drawRect:(CGRect)rect
 {
   //NSAssert(fontMetrics != nil, @"fontMetrics not initialized");
-  NSAssert(stringSupplier != nil, @"stringSupplier not initialized");
+  //NSAssert(stringSupplier != nil, @"stringSupplier not initialized");
   CGContextRef context = UIGraphicsGetCurrentContext();
-  
+  //NSDictionary *attributesdict = [NSDictionary dictionaryWithObjectsAndKeys: 
   CFAttributedStringRef attributedString = [self newAttributedString];
-  [self drawBackground:context forString:attributedString];
+  NSLog(@"attrStr %@", attributedString);
+  //[self drawBackground:context forString:attributedString];
+  //[self drawBackground:context forString:@"attributedString"];
 
   // By default, text is drawn upside down.  Apply a transformation to turn
   // orient the text correctly.
   CGAffineTransform xform = CGAffineTransformMake(1.0, 0.0, 0.0, -1.0, 0.0, 0.0);
   CGContextSetTextMatrix(context, xform);
-  CGContextSetTextPosition(context, 0.0, [self textOffset]);
+  CGContextSetTextPosition(context, 0, [self textOffset]);
   CTLineRef line = CTLineCreateWithAttributedString(attributedString);
   CTLineDraw(line, context);
   CFRelease(line);

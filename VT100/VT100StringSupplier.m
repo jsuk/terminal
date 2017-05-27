@@ -39,8 +39,8 @@ NSString *const kBackgroundColorAttributeName = @"-background-color-";
 		unicharBuffer[width] = '\n';
 		width += 1;
 	}
-
-	return [[[NSString alloc] initWithCharacters:unicharBuffer length:width] autorelease];
+  NSLog(@"stringForLine %d width %d", rowIndex, width);
+  return [[NSString alloc] initWithCharacters:unicharBuffer length:width];
 }
 
 - (NSAttributedString *)attributedString {
@@ -66,6 +66,7 @@ NSString *const kBackgroundColorAttributeName = @"-background-color-";
 		// attribute for the run of characters at the end of the line.
 		NSUInteger lastColorIndex = NSUIntegerMax;
 		UIColor *lastColor = nil;
+		UIColor *tempColor = nil;
 		screen_char_t *row = [_screenBuffer bufferForRow:i];
 
 		// TODO(aporter): This looks a lot more complicated than it needs to be. Try
@@ -85,7 +86,9 @@ NSString *const kBackgroundColorAttributeName = @"-background-color-";
 			if (eol || ![color isEqual:lastColor]) {
 				if (lastColorIndex != NSUIntegerMax) {
 					int length = j - lastColorIndex;
-					[attributedString addAttribute:kBackgroundColorAttributeName value:lastColor range:NSMakeRange(startOffset + lastColorIndex, length)];
+          tempColor = lastColor;
+          tempColor = _colorMap.foregroundBold;
+					[attributedString addAttribute:kBackgroundColorAttributeName value:tempColor range:NSMakeRange(startOffset + lastColorIndex, length)];
 				}
 
 				if (!eol) {
@@ -114,7 +117,8 @@ NSString *const kBackgroundColorAttributeName = @"-background-color-";
 			if (eol || ![color isEqual:lastColor]) {
 				if (lastColorIndex != -1) {
 					int length = j - lastColorIndex;
-					[attributedString addAttribute:(NSString *)kCTForegroundColorAttributeName value:lastColor range:NSMakeRange(startOffset + lastColorIndex, length)];
+          tempColor = lastColor;
+					[attributedString addAttribute:(NSString *)kCTForegroundColorAttributeName value:tempColor range:NSMakeRange(startOffset + lastColorIndex, length)];
 				}
 
 				if (!eol) {

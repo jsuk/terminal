@@ -44,7 +44,7 @@ extern void CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
     [self addSubview:tableViewController.tableView];
     //
     [stringSupplier release];
-    tableViewController.tableView.backgroundColor = [UIColor yellowColor];
+    //tableViewController.tableView.backgroundColor = [UIColor yellowColor];
   }
   return self;
 }

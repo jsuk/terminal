@@ -19,7 +19,7 @@
   if (self != nil) {
     colorMap = [someColormap retain];
     [self.tableView setIndicatorStyle:UIScrollViewIndicatorStyleWhite];
-    [self.tableView setBackgroundColor:[colorMap background]];
+    //[self.tableView setBackgroundColor:[colorMap background]];
     [self.tableView setAllowsSelection:NO];
     [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
   }
@@ -36,6 +36,9 @@
 - (CGRect)cellFrame {
   int height = [fontMetrics boundingBox].height;
   int width = [self.tableView frame].size.width;
+  if (height == 0) height = 23;
+  NSLog(@"cellFrame height %d", height);
+  NSLog(@"cellFrame width %d", width);
   return CGRectMake(0, 0, width, height);
 }
 
@@ -52,7 +55,10 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-  return [stringSupplier rowCount];
+  int row = [stringSupplier rowCount];
+  NSLog(@"numberOfRows %d", row);
+  //row = 1;
+  return row;
 }
 
 - (UITableViewCell*)tableViewCell:(UITableView *)tableView
@@ -89,12 +95,14 @@
   UITableViewCell *cell = [self tableViewCell:tableView];
   // Update the line of text (via row number) associated with this cell
   NSArray* subviews = [cell.contentView subviews];
-  NSAssert([subviews count] == 1, @"Invalid contentView size");
+  //NSAssert([subviews count] == 1, @"Invalid contentView size");
   VT100RowView* rowView = [subviews objectAtIndex:0];
   rowView.rowIndex = (int)tableRow;
   rowView.fontMetrics = fontMetrics;  
   // resize the row in case the table has changed size
   cell.frame = [self cellFrame];
+  cell.backgroundColor = [UIColor blueColor];
+
   rowView.frame = [self cellFrame];  
   [cell setNeedsDisplay];
   [rowView setNeedsDisplay];
